@@ -1,8 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
-use crate::window::{SortMode, WindowSplit};
-
-static mut MODE: bool = true;
+use crate::window::WindowSplit;
 
 pub fn process_keys(event: KeyEvent, split: &mut WindowSplit) -> bool {
     if let KeyEventKind::Press = event.kind {
@@ -16,15 +14,10 @@ pub fn process_keys(event: KeyEvent, split: &mut WindowSplit) -> bool {
                 split.selected = split.selected.opposite();
             }
             KeyCode::Char('q') => should_quit = true,
-            KeyCode::Char('m') => unsafe {
-                MODE = !MODE;
-                w.sort_mode = if !MODE {
-                    SortMode::DirectoriesFirst
-                } else {
-                    SortMode::Ungrouped
-                };
+            KeyCode::Char('m') => {
+                w.sort_mode = w.sort_mode.next();
                 w.sort_entries();
-            },
+            }
             KeyCode::Char('j') => {
                 w.move_down();
             }

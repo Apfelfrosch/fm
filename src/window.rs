@@ -106,6 +106,15 @@ pub enum SortMode {
     Ungrouped,
 }
 
+impl SortMode {
+    pub fn next(&self) -> SortMode {
+        match &self {
+            SortMode::DirectoriesFirst => SortMode::Ungrouped,
+            SortMode::Ungrouped => SortMode::DirectoriesFirst,
+        }
+    }
+}
+
 impl Window {
     pub fn build_from_path_no_symlink(path: impl Into<String>) -> io::Result<Window> {
         let mut w = Window {
