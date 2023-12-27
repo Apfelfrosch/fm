@@ -6,7 +6,7 @@ use std::{
 
 use ratatui::{
     layout::{Constraint, Layout, Rect},
-    style::{Color, Style, Stylize},
+    style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
     Frame,
@@ -98,6 +98,7 @@ pub struct Window {
     entries: Vec<DirectoryEntry>,
     selected: usize,
     pub sort_mode: SortMode,
+    scroll_y: usize,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -122,6 +123,7 @@ impl Window {
             entries: Vec::new(),
             selected: 0,
             sort_mode: SortMode::Ungrouped,
+            scroll_y: 0,
         };
         w.refresh()?;
         Ok(w)
@@ -181,7 +183,7 @@ impl Window {
 
     pub fn render_to_frame(&self, frame: &mut Frame<'_>, is_selected: bool, area: Rect) {
         let mut lines = Vec::new();
-        for (name, metadata) in &self.entries {
+        for (idx, (name, metadata)) in self.entries.iter().enumerate().skip(self.scroll_y) {
             let color = if metadata.is_symlink() {
                 Color::Blue
             } else if metadata.is_dir() {
@@ -189,7 +191,16 @@ impl Window {
             } else {
                 Color::Gray
             };
-            lines.push(Line::from(Span::styled(name, Style::new().fg(color))));
+            let mut span = Span::styled(name, Style::new().fg(color));
+            let is_selected = self.selected == idx;
+
+            if is_selected {
+                span = span
+                    .bg(Color::Rgb(77, 77, 77))
+                    .add_modifier(Modifier::UNDERLINED);
+            }
+
+            lines.push(Line::from(span));
         }
         frame.render_widget(
             Paragraph::new(lines).block(
