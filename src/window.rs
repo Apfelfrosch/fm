@@ -198,12 +198,13 @@ impl Window {
                 Color::Gray
             };
             let mut span = Span::styled(name, Style::new().fg(color));
-            let is_selected = self.selected == idx;
+            let is_selected_entry = self.selected == idx;
 
-            if is_selected {
-                span = span
-                    .bg(Color::Rgb(77, 77, 77))
-                    .add_modifier(Modifier::UNDERLINED);
+            if is_selected_entry {
+                span = span.add_modifier(Modifier::UNDERLINED);
+                if is_selected {
+                    span = span.bg(Color::Rgb(77, 77, 77));
+                }
             }
 
             lines.push(Line::from(span));
