@@ -160,6 +160,9 @@ impl Window {
             files.push(entry);
         }
         self.entries = files;
+        if self.selected >= self.entries.len() {
+            self.selected = self.entries.len().max(1) - 1;
+        }
         self.sort_entries();
         Ok(())
     }
