@@ -2,6 +2,7 @@ use std::{
     cmp::Ordering,
     fs::{self, Metadata},
     io,
+    path::PathBuf,
 };
 
 use ratatui::{
@@ -94,7 +95,7 @@ impl WindowSplit {
 
 #[derive(Clone, Debug)]
 pub struct Window {
-    path: String,
+    path: PathBuf,
     entries: Vec<DirectoryEntry>,
     selected: usize,
     pub sort_mode: SortMode,
@@ -117,9 +118,9 @@ impl SortMode {
 }
 
 impl Window {
-    pub fn build_from_path_no_symlink(path: impl Into<String>) -> io::Result<Window> {
+    pub fn build_from_path_no_symlink(path: PathBuf) -> io::Result<Window> {
         let mut w = Window {
-            path: path.into(),
+            path,
             entries: Vec::new(),
             selected: 0,
             sort_mode: SortMode::Ungrouped,
@@ -216,7 +217,7 @@ impl Window {
             Paragraph::new(lines).block(
                 Block::new()
                     .borders(Borders::ALL)
-                    .title(self.path.as_str())
+                    .title(&*self.path.to_string_lossy())
                     .fg(if is_selected {
                         Color::Cyan
                     } else {

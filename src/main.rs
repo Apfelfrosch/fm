@@ -1,4 +1,4 @@
-use std::{error::Error, io::stderr, time::Duration};
+use std::{error::Error, io::stderr, path::PathBuf, str::FromStr, time::Duration};
 
 use crossterm::{
     event,
@@ -20,17 +20,28 @@ fn initialize_panic_hook() {
     }));
 }
 
+struct RestoreTerminal;
+
+impl Drop for RestoreTerminal {
+    fn drop(&mut self) {
+        stderr().execute(LeaveAlternateScreen).unwrap();
+        disable_raw_mode().unwrap();
+    }
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     initialize_panic_hook();
 
     stderr().execute(EnterAlternateScreen)?;
     enable_raw_mode()?;
 
+    let _restore = RestoreTerminal;
+
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
     terminal.clear()?;
 
-    let window = Window::build_from_path_no_symlink(".")?;
-    let window_src = Window::build_from_path_no_symlink("src")?;
+    let window = Window::build_from_path_no_symlink(PathBuf::from_str(".")?)?;
+    let window_src = Window::build_from_path_no_symlink(PathBuf::from_str("src")?)?;
     let mut split = WindowSplit::single_window(window);
 
     loop {
@@ -46,9 +57,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-
-    stderr().execute(LeaveAlternateScreen)?;
-    disable_raw_mode()?;
 
     Ok(())
 }
