@@ -5,19 +5,86 @@ use std::{
 };
 
 use ratatui::{
-    layout::Rect,
-    style::{Color, Style},
+    layout::{Constraint, Layout, Rect},
+    style::{Color, Style, Stylize},
     text::{Line, Span},
-    widgets::Paragraph,
+    widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
 pub type DirectoryEntry = (String, Metadata);
 
+pub enum WindowSplitSelection {
+    First,
+    Second,
+}
+
+pub struct WindowSplit {
+    first: Window,
+    selected: WindowSplitSelection,
+    pub second: Option<Window>,
+}
+
+impl WindowSplit {
+    pub fn single_window(w: Window) -> Self {
+        WindowSplit {
+            first: w,
+            selected: WindowSplitSelection::First,
+            second: None,
+        }
+    }
+
+    pub fn two_windows(first: Window, second: Window) -> Self {
+        WindowSplit {
+            first,
+            selected: WindowSplitSelection::First,
+            second: Some(second),
+        }
+    }
+
+    pub fn render_to_frame(&self, frame: &mut Frame<'_>, area: Rect) {
+        if let Some(second_window) = &self.second {
+            let layout = Layout::default()
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .direction(ratatui::layout::Direction::Horizontal)
+                .split(area);
+            self.first.render_to_frame(frame, layout[0]);
+            second_window.render_to_frame(frame, layout[1]);
+        } else {
+            self.first.render_to_frame(frame, area);
+        }
+    }
+
+    pub fn selected(&self) -> &Window {
+        if let Some(second_window) = &self.second {
+            if let WindowSplitSelection::First = self.selected {
+                &self.first
+            } else {
+                second_window
+            }
+        } else {
+            &self.first
+        }
+    }
+
+    pub fn selected_mut(&mut self) -> &mut Window {
+        if let Some(second_window) = self.second.as_mut() {
+            if let WindowSplitSelection::First = self.selected {
+                &mut self.first
+            } else {
+                second_window
+            }
+        } else {
+            &mut self.first
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Window {
     path: String,
     entries: Vec<DirectoryEntry>,
+    selected: usize,
     pub sort_mode: SortMode,
 }
 
@@ -32,10 +99,29 @@ impl Window {
         let mut w = Window {
             path: path.into(),
             entries: Vec::new(),
+            selected: 0,
             sort_mode: SortMode::Ungrouped,
         };
         w.refresh()?;
         Ok(w)
+    }
+
+    pub fn move_down(&mut self) -> bool {
+        if self.selected + 1 >= self.entries.len() {
+            false
+        } else {
+            self.selected += 1;
+            true
+        }
+    }
+
+    pub fn move_up(&mut self) -> bool {
+        if self.selected == 0 {
+            false
+        } else {
+            self.selected -= 1;
+            true
+        }
     }
 
     pub fn refresh(&mut self) -> io::Result<()> {
@@ -84,6 +170,14 @@ impl Window {
             };
             lines.push(Line::from(Span::styled(name, Style::new().fg(color))));
         }
-        frame.render_widget(Paragraph::new(lines), area);
+        frame.render_widget(
+            Paragraph::new(lines).block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .title(self.path.as_str())
+                    .fg(Color::Cyan),
+            ),
+            area,
+        );
     }
 }
