@@ -183,7 +183,13 @@ impl Window {
 
     pub fn render_to_frame(&self, frame: &mut Frame<'_>, is_selected: bool, area: Rect) {
         let mut lines = Vec::new();
-        for (idx, (name, metadata)) in self.entries.iter().enumerate().skip(self.scroll_y) {
+        for (idx, (name, metadata)) in self
+            .entries
+            .iter()
+            .enumerate()
+            .skip(self.scroll_y)
+            .take(area.height as usize)
+        {
             let color = if metadata.is_symlink() {
                 Color::Blue
             } else if metadata.is_dir() {
