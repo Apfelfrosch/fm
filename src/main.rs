@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let window = Window::build_from_path_no_symlink(".")?;
     let window_src = Window::build_from_path_no_symlink("src")?;
-    let mut split = WindowSplit::two_windows(window, window_src);
+    let mut split = WindowSplit::single_window(window);
 
     loop {
         terminal.draw(|frame| {

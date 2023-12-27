@@ -9,6 +9,12 @@ pub fn process_keys(event: KeyEvent, split: &mut WindowSplit) -> bool {
         let mut should_quit = false;
         let w = split.selected_mut();
         match event.code {
+            KeyCode::Tab => {
+                if split.second.is_none() {
+                    split.second = Some(split.first.clone());
+                }
+                split.selected = split.selected.opposite();
+            }
             KeyCode::Char('q') => should_quit = true,
             KeyCode::Char('m') => unsafe {
                 MODE = !MODE;

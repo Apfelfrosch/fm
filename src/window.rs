@@ -14,14 +14,24 @@ use ratatui::{
 
 pub type DirectoryEntry = (String, Metadata);
 
+#[derive(Clone, Copy, Debug)]
 pub enum WindowSplitSelection {
     First,
     Second,
 }
 
+impl WindowSplitSelection {
+    pub fn opposite(&self) -> WindowSplitSelection {
+        match &self {
+            Self::First => Self::Second,
+            Self::Second => Self::First,
+        }
+    }
+}
+
 pub struct WindowSplit {
-    first: Window,
-    selected: WindowSplitSelection,
+    pub first: Window,
+    pub selected: WindowSplitSelection,
     pub second: Option<Window>,
 }
 
@@ -48,10 +58,12 @@ impl WindowSplit {
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .direction(ratatui::layout::Direction::Horizontal)
                 .split(area);
-            self.first.render_to_frame(frame, layout[0]);
-            second_window.render_to_frame(frame, layout[1]);
+            let first_is_selected = matches!(self.selected, WindowSplitSelection::First);
+            self.first
+                .render_to_frame(frame, first_is_selected, layout[0]);
+            second_window.render_to_frame(frame, !first_is_selected, layout[1]);
         } else {
-            self.first.render_to_frame(frame, area);
+            self.first.render_to_frame(frame, true, area);
         }
     }
 
@@ -158,7 +170,7 @@ impl Window {
         }
     }
 
-    pub fn render_to_frame(&self, frame: &mut Frame<'_>, area: Rect) {
+    pub fn render_to_frame(&self, frame: &mut Frame<'_>, is_selected: bool, area: Rect) {
         let mut lines = Vec::new();
         for (name, metadata) in &self.entries {
             let color = if metadata.is_symlink() {
@@ -175,7 +187,11 @@ impl Window {
                 Block::new()
                     .borders(Borders::ALL)
                     .title(self.path.as_str())
-                    .fg(Color::Cyan),
+                    .fg(if is_selected {
+                        Color::Cyan
+                    } else {
+                        Color::Gray
+                    }),
             ),
             area,
         );
