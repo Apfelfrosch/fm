@@ -95,9 +95,9 @@ impl WindowSplit {
 
 #[derive(Clone, Debug)]
 pub struct Window {
-    path: PathBuf,
-    entries: Vec<DirectoryEntry>,
-    selected: usize,
+    pub path: PathBuf,
+    pub entries: Vec<DirectoryEntry>,
+    pub selected: usize,
     pub sort_mode: SortMode,
     scroll_y: usize,
 }
