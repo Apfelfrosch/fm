@@ -1,13 +1,15 @@
 use std::{error::Error, io::stderr, path::PathBuf, str::FromStr, time::Duration};
 
+use app::App;
 use crossterm::{
     event,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
-use window::{Window, WindowSplit};
+use window::Window;
 
+mod app;
 mod keys;
 mod window;
 
@@ -40,18 +42,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
     terminal.clear()?;
 
+    let mut app = App::new();
     let window = Window::build_from_path_no_symlink(PathBuf::from_str(".")?)?;
     let window_src = Window::build_from_path_no_symlink(PathBuf::from_str("src")?)?;
-    let mut split = WindowSplit::single_window(window);
+    app.new_split_both(window, window_src);
 
     loop {
         terminal.draw(|frame| {
-            split.render_to_frame(frame, frame.size());
+            app.render_to_frame(frame, frame.size());
         })?;
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key_event) = event::read()? {
-                if crate::keys::process_keys(key_event, &mut split) {
+                if crate::keys::process_keys(key_event, &mut app) {
                     break;
                 }
             }
