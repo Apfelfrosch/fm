@@ -36,7 +36,7 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                         .entries
                         .iter()
                         .position(|(n, _)| n == &old_dir_name)
-                        .unwrap();
+                        .unwrap_or(w.selected);
                 }
             }
             KeyCode::Char('l') => {
