@@ -44,8 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut app = App::new();
     let window = Window::build_from_path_no_symlink(PathBuf::from_str(".")?)?;
-    let window_src = Window::build_from_path_no_symlink(PathBuf::from_str("src")?)?;
-    app.new_split_both(window, window_src);
+    app.new_split_single(window);
 
     loop {
         terminal.draw(|frame| {
