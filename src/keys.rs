@@ -33,8 +33,9 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                     w.refresh().unwrap();
                     w.selected = w
                         .entries
-                        .binary_search_by_key(&&old_dir_name, |(name, _)| name)
-                        .unwrap_or(0);
+                        .iter()
+                        .position(|(n, _)| n == &old_dir_name)
+                        .unwrap();
                 }
             }
             KeyCode::Char('l') => {

@@ -57,13 +57,13 @@ impl App {
         &mut self.splits[idx]
     }
 
-    pub fn render_to_frame(&self, frame: &mut Frame<'_>, area: Rect) {
+    pub fn render_to_frame(&mut self, frame: &mut Frame<'_>, area: Rect) {
         let layout = Layout::default()
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
             .direction(Direction::Horizontal)
             .split(area);
 
-        if let Some(split) = self.selected_split() {
+        if let Some(split) = self.selected_split_mut() {
             split.render_to_frame(frame, layout[1]);
         }
 

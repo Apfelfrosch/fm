@@ -53,8 +53,8 @@ impl WindowSplit {
         }
     }
 
-    pub fn render_to_frame(&self, frame: &mut Frame<'_>, area: Rect) {
-        if let Some(second_window) = &self.second {
+    pub fn render_to_frame(&mut self, frame: &mut Frame<'_>, area: Rect) {
+        if let Some(second_window) = &mut self.second {
             let layout = Layout::default()
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .direction(ratatui::layout::Direction::Horizontal)
@@ -182,12 +182,15 @@ impl Window {
             self.selected = self.entries.len().max(1) - 1;
         }
         self.sort_entries();
+        self.scroll_y = 0;
         Ok(())
     }
 
     pub fn sort_entries(&mut self) {
         match self.sort_mode {
-            SortMode::Ungrouped => self.entries.sort_by(|(n1, _), (n2, _)| n1.cmp(n2)),
+            SortMode::Ungrouped => self
+                .entries
+                .sort_by(|(n1, _), (n2, _)| n1.to_lowercase().cmp(&n2.to_lowercase())),
             SortMode::DirectoriesFirst => {
                 self.entries.sort_by(|(n1, m1), (n2, m2)| {
                     if m1.is_dir() && !m2.is_dir() {
@@ -195,14 +198,25 @@ impl Window {
                     } else if !m1.is_dir() && m2.is_dir() {
                         Ordering::Greater
                     } else {
-                        n1.cmp(n2)
+                        n1.to_lowercase().cmp(&n2.to_lowercase())
                     }
                 });
             }
         }
     }
 
-    pub fn render_to_frame(&self, frame: &mut Frame<'_>, is_selected: bool, area: Rect) {
+    pub fn render_to_frame(&mut self, frame: &mut Frame<'_>, is_selected: bool, area: Rect) {
+        let last_seen =
+            (self.scroll_y + (area.height - 3) as usize).min(self.entries.len().max(1) - 1);
+
+        if self.selected > last_seen {
+            self.scroll_y += self.selected - last_seen;
+        }
+
+        if self.selected < self.scroll_y {
+            self.scroll_y -= self.scroll_y - self.selected;
+        }
+
         let mut lines = Vec::new();
         for (idx, (name, metadata)) in self
             .entries
@@ -234,7 +248,7 @@ impl Window {
             Paragraph::new(lines).block(
                 Block::new()
                     .borders(Borders::ALL)
-                    .title(&*self.path.to_string_lossy())
+                    .title(self.current_dir_name.as_str())
                     .fg(if is_selected {
                         Color::Cyan
                     } else {
