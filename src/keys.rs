@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
 use crate::app::App;
@@ -35,11 +33,11 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
             }
             KeyCode::Char('y') => {
                 if let Some(w) = app.selected_window() {
-                    let mut cloned_path =
+                    let mut target_path =
                         w.path.canonicalize().unwrap().to_string_lossy().to_string();
-                    cloned_path.push_str(std::path::MAIN_SEPARATOR_STR);
-                    cloned_path.push_str(&w.entries[w.selected].0);
-                    app.global_selection.paths.push(PathBuf::from(cloned_path));
+                    target_path.push_str(std::path::MAIN_SEPARATOR_STR);
+                    target_path.push_str(&w.entries[w.selected].0);
+                    clipfile::put_path_into_clipboard(&target_path).expect("Could not copy");
                 }
             }
             _ => {}

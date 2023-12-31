@@ -10,6 +10,7 @@ repository = "https://github.com/Apfelfrosch/fm"
 [dependencies]
 crossterm = "0.27.0"
 ratatui = "0.25.0"
+clipfile = { git = "https://github.com/Apfelfrosch/clipfile" }
 
 [profile.release]
 codegen-units = 1
