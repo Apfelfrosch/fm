@@ -25,6 +25,7 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                 if let Some(w) = app.selected_window_mut() {
                     let mut target_path =
                         w.path.canonicalize().unwrap().to_string_lossy().to_string();
+                    w.stored_selection.insert(target_path.clone(), w.selected);
                     let old_dir_name = w.current_dir_name().clone();
                     target_path.push_str(std::path::MAIN_SEPARATOR_STR);
                     target_path.push_str("..");
@@ -49,7 +50,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                         let target_path = std::fs::canonicalize(&target_path).unwrap();
                         w.path = target_path;
                         w.refresh().unwrap();
-                        w.selected = 0;
                     }
                 }
             }

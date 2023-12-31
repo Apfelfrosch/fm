@@ -1,5 +1,6 @@
 use std::{
     cmp::Ordering,
+    collections::HashMap,
     fs::{self, Metadata},
     io,
     path::PathBuf,
@@ -101,6 +102,7 @@ pub struct Window {
     pub sort_mode: SortMode,
     current_dir_name: String,
     scroll_y: usize,
+    pub stored_selection: HashMap<String, usize>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -127,6 +129,7 @@ impl Window {
             sort_mode: SortMode::Ungrouped,
             current_dir_name: String::from(""),
             scroll_y: 0,
+            stored_selection: HashMap::new(),
         };
         w.refresh()?;
         Ok(w)
@@ -178,6 +181,13 @@ impl Window {
             canon[canon.rfind('/').map(|idx| idx + 1).unwrap_or(0)..].to_string()
         };
         self.entries = files;
+
+        if let Some(stored_select) = self.stored_selection.get(&canon) {
+            self.selected = *stored_select;
+        } else {
+            self.selected = 0;
+        }
+
         if self.selected >= self.entries.len() {
             self.selected = self.entries.len().max(1) - 1;
         }
