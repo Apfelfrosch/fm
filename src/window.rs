@@ -99,6 +99,7 @@ pub struct Window {
     pub entries: Vec<DirectoryEntry>,
     pub selected: usize,
     pub sort_mode: SortMode,
+    current_dir_name: String,
     scroll_y: usize,
 }
 
@@ -124,6 +125,7 @@ impl Window {
             entries: Vec::new(),
             selected: 0,
             sort_mode: SortMode::Ungrouped,
+            current_dir_name: String::from(""),
             scroll_y: 0,
         };
         w.refresh()?;
@@ -148,6 +150,10 @@ impl Window {
         }
     }
 
+    pub fn current_dir_name(&self) -> &String {
+        &self.current_dir_name
+    }
+
     pub fn refresh(&mut self) -> io::Result<()> {
         let it = fs::read_dir(&self.path)?;
         let mut files = Vec::new();
@@ -160,6 +166,17 @@ impl Window {
             );
             files.push(entry);
         }
+        let canon = self
+            .path
+            .canonicalize()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        self.current_dir_name = if canon.len() <= 1 {
+            "/".to_string()
+        } else {
+            canon[canon.rfind('/').map(|idx| idx + 1).unwrap_or(0)..].to_string()
+        };
         self.entries = files;
         if self.selected >= self.entries.len() {
             self.selected = self.entries.len().max(1) - 1;
