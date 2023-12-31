@@ -46,6 +46,7 @@ impl WindowSplit {
         }
     }
 
+    #[allow(dead_code)]
     pub fn two_windows(first: Window, second: Window) -> Self {
         WindowSplit {
             first,
@@ -126,7 +127,7 @@ impl Window {
             path,
             entries: Vec::new(),
             selected: 0,
-            sort_mode: SortMode::Ungrouped,
+            sort_mode: SortMode::DirectoriesFirst,
             current_dir_name: String::from(""),
             scroll_y: 0,
             stored_selection: HashMap::new(),
@@ -224,7 +225,7 @@ impl Window {
         }
 
         if self.selected < self.scroll_y {
-            self.scroll_y -= self.scroll_y - self.selected;
+            self.scroll_y = self.scroll_y - (self.scroll_y - self.selected);
         }
 
         let mut lines = Vec::new();

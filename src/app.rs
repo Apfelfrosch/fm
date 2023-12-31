@@ -38,6 +38,7 @@ impl App {
         &mut self.splits[idx]
     }
 
+    #[allow(dead_code)]
     pub fn new_split_both(&mut self, first: Window, second: Window) -> &mut WindowSplit {
         let split = WindowSplit::two_windows(first, second);
         self.splits.push(split);
